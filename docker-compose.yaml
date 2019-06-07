@@ -11,9 +11,7 @@ services:
     links:
     - php
   php:
-    build: 
-      context: .
-      dockerfile: ./code/dockerfile
+    image: php:7.3-fpm-stretch
     volumes:
     - ./code:/usr/share/nginx/html
     - ./php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
