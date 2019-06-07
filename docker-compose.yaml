@@ -39,3 +39,27 @@ services:
       PMA_HOST: mysql
     links:
     - mysql
+  php-fpm-exporter:
+    image: bakins/php-fpm-exporter:v0.6.1
+    entrypoint:
+    - /php-fpm-exporter
+    - --addr
+    - 0.0.0.0:8080
+    - --endpoint
+    - http://nginx/php_fpm_status
+    links:
+    - nginx
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    links:
+    - php-fpm-exporter
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    links:
+      - prometheus
