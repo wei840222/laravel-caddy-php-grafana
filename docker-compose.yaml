@@ -13,7 +13,7 @@ services:
   php:
     build: 
       context: .
-      dockerfile: ./php-fpm/dockerfile
+      dockerfile: ./code/dockerfile
     volumes:
     - ./code:/code
     - ./php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro

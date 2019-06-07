@@ -1,0 +1,4 @@
+FROM php:7.3-fpm-stretch
+RUN docker-php-ext-install mysqli pdo_mysql
+RUN curl -sL https://getcomposer.org/installer | php -- --install-dir /usr/bin --filename composer
+RUN composer install
