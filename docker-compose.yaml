@@ -5,7 +5,7 @@ services:
     ports:
     - "80:80"
     volumes:
-    - ./code:/usr/share/nginx/html
+    - ./code:/usr/share/nginx
     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     links:
@@ -13,7 +13,7 @@ services:
   php:
     image: php:7.3-fpm-stretch
     volumes:
-    - ./code:/usr/share/nginx/html
+    - ./code:/usr/share/nginx
     - ./php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
     - ./php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
     links:
