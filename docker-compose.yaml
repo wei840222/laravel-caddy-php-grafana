@@ -1,19 +1,22 @@
 version: "3.7"
 services:
-  nginx:
-    image: nginx:latest
+  caddy:
+    image: abiosoft/caddy:latest
     ports:
     - "80:80"
+    - "8088:8088"
     volumes:
-    - ./code:/usr/share/nginx
-    - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./code:/var/www/html
+    - ./caddy/Caddyfile:/etc/Caddyfile:ro
     links:
     - php
   php:
-    image: php:7.3-fpm-stretch
+    # image: php:7.3-fpm-stretch
+    build:
+      context: .
+      dockerfile: ./code/Dockerfile
     volumes:
-    - ./code:/usr/share/nginx
+    # - ./code:/var/www/html
     - ./php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
     - ./php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
     links:
@@ -44,9 +47,9 @@ services:
     - --addr
     - 0.0.0.0:8080
     - --endpoint
-    - http://nginx/php_fpm_status
+    - http://caddy:8088/php_fpm_status
     links:
-    - nginx
+    - caddy
   prometheus:
     image: prom/prometheus
     volumes:
