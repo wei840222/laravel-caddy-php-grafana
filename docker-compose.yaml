@@ -8,38 +8,15 @@ services:
     volumes:
     - ./code:/var/www/html
     - ./caddy/Caddyfile:/etc/Caddyfile:ro
-    links:
-    - php
   php:
-    # image: php:7.3-fpm-stretch
-    build:
-      context: .
-      dockerfile: ./code/Dockerfile
+    image: php:7.3-fpm-stretch
+    # build:
+    #   context: .
+    #   dockerfile: ./code/Dockerfile
     volumes:
-    # - ./code:/var/www/html
+    - ./code:/var/www/html
     - ./php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
     - ./php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
-    links:
-    - mysql
-  mysql:
-    image: mysql:5.7
-    volumes:
-    - ./mysql/my.cnf:/etc/mysql/my.cnf:ro
-    environment:
-      MYSQL_USER: "root"
-      MYSQL_PASSWORD: "root"
-      MYSQL_ROOT_PASSWORD: "root"
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    ports:
-      - "8080:80"
-    environment:
-      MYSQL_USER: "root"
-      MYSQL_PASSWORD: "root"
-      MYSQL_ROOT_PASSWORD: "root"
-      PMA_HOST: mysql
-    links:
-    - mysql
   php-fpm-exporter:
     image: bakins/php-fpm-exporter:v0.6.1
     entrypoint:
@@ -48,19 +25,51 @@ services:
     - 0.0.0.0:8080
     - --endpoint
     - http://caddy:8088/php_fpm_status
-    links:
-    - caddy
+  mysql:
+    image: mysql:5.7
+    volumes:
+    - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "123456"
+      MYSQL_ROOT_PASSWORD: "123456"
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+    - "8080:80"
+    environment:
+      PMA_HOST: mysql
+  mysqlexporter:
+    image: prom/mysqld-exporter
+    ports:
+    - "9104:9104"
+    environment:
+    - DATA_SOURCE_NAME=root:123456@(mysql:3306)/database
+  
   prometheus:
     image: prom/prometheus
+    ports:
+    - 9090:9090
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    - prometheus_data:/prometheus
+    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     links:
     - php-fpm-exporter
   grafana:
     image: grafana/grafana
-    ports:
-      - 3000:3000
+    volumes:
+    - grafana_data:/var/lib/grafana
+    - ./grafana/datasources:/etc/grafana/datasources
+    - ./grafana/dashboards:/etc/grafana/dashboards
+    - ./grafana/setup.sh:/setup.sh
+    entrypoint: /setup.sh
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    links:
-      - prometheus
+    - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+    - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+    - 3000:3000
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  mysql_data: {}
